@@ -1,0 +1,870 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Vidscola Renewal Hub</title>
+  
+  <!-- Fonts: Comfortaa & Montserrat -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Firebase App and Firestore SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    :root {
+      --navy: #1B2A4E;
+      --navy-dark: #111B33;
+      --accent: #E8391F;
+      --accent-hover: #cf2f17;
+      --bg: #F3F5F9;
+      --surface: #FFFFFF;
+      --surface2: #F8F9FC;
+      --line: #DCE2EE;
+      --fg: #1E293B;
+      --muted: #64748B;
+      --chip: #E2E8F0;
+      --ok: #10B981;
+      --warn: #F59E0B;
+      --bad: #EF4444;
+      --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08);
+      --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.07);
+      
+      --f-head: "Comfortaa", cursive, sans-serif;
+      --f-body: "Montserrat", sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: var(--f-body);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* Top Bar */
+    .top {
+      background: var(--surface);
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      box-shadow: var(--shadow-sm);
+    }
+    .top-in {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      max-width: 1720px;
+      margin: 0 auto;
+      padding: 10px 24px;
+    }
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+    .logo {
+      height: 28px;
+      width: auto;
+      display: block;
+    }
+    .app-title {
+      font-family: var(--f-head);
+      font-weight: 700;
+      font-size: 18px;
+      color: var(--navy);
+      letter-spacing: -0.02em;
+    }
+
+    .nav {
+      display: flex;
+      gap: 4px;
+      margin-left: 20px;
+    }
+    .nav a {
+      color: var(--muted);
+      text-decoration: none;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+    .nav a:hover { background: var(--surface2); color: var(--navy); }
+    .nav a[aria-current="page"] {
+      background: rgba(27, 42, 78, 0.08);
+      color: var(--navy);
+    }
+
+    /* Top Right Profile & Actions */
+    .user-meta {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .user-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #FFFFFF;
+      border: 1px solid #CBD5E1;
+      padding: 5px 12px;
+      border-radius: 20px;
+      color: #000000;
+      font-weight: 700;
+      font-size: 13px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    .user-avatar {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--navy);
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+    }
+
+    .btn {
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--fg);
+      border-radius: 7px;
+      padding: 7px 14px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: var(--f-body);
+      font-size: 13px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s;
+    }
+    .btn:hover { background: var(--surface2); }
+    .btn.pri {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+    .btn.pri:hover { background: var(--accent-hover); }
+    .btn.sm { padding: 4px 8px; font-size: 12px; }
+    .btn.bad { color: var(--bad); border-color: rgba(239, 68, 68, 0.4); }
+    .btn.bad:hover { background: rgba(239, 68, 68, 0.08); }
+
+    /* Main Board */
+    main {
+      max-width: 1720px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .filter-bar input[type="search"], .filter-bar select {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-family: var(--f-body);
+      font-size: 13px;
+    }
+    .count {
+      margin-left: auto;
+      color: var(--muted);
+      font-weight: 500;
+      font-size: 13px;
+    }
+
+    .board-columns {
+      display: flex;
+      gap: 16px;
+      overflow-x: auto;
+      padding-bottom: 16px;
+      align-items: flex-start;
+    }
+    .col {
+      flex: 0 0 280px;
+      background: #EAEFF7;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      min-height: 400px;
+    }
+    .col h3 {
+      font-family: var(--f-head);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--navy);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .col-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    .col-count {
+      margin-left: auto;
+      font-family: var(--f-body);
+      font-size: 11px;
+      background: #fff;
+      color: var(--navy);
+      padding: 2px 7px;
+      border-radius: 10px;
+    }
+
+    .cards-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      padding: 12px;
+      box-shadow: var(--shadow-sm);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      border-color: #CBD5E1;
+    }
+    .card-title {
+      font-family: var(--f-head);
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--navy);
+      line-height: 1.35;
+    }
+    .card-meta {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .tag {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 12px;
+      background: var(--chip);
+      color: var(--muted);
+    }
+    .prio-pill {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      border-radius: 4px;
+    }
+    .prio-high { background: rgba(239, 68, 68, 0.15); color: var(--bad); }
+    .prio-medium { background: rgba(245, 158, 11, 0.15); color: var(--warn); }
+    .prio-low { background: rgba(100, 116, 139, 0.15); color: var(--muted); }
+
+    /* Side Drawer */
+    #scrim {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+      z-index: 45;
+      backdrop-filter: blur(2px);
+    }
+    #drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: min(640px, 100%);
+      background: var(--surface);
+      z-index: 50;
+      box-shadow: -8px 0 25px rgba(0, 0, 0, 0.15);
+      display: flex;
+      flex-direction: column;
+    }
+    .dr-head {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .dr-head input {
+      flex: 1;
+      font-family: var(--f-head);
+      font-weight: 700;
+      font-size: 18px;
+      border: 1px solid transparent;
+      padding: 6px;
+      border-radius: 6px;
+      color: var(--navy);
+    }
+    .dr-head input:focus { border-color: var(--line); background: var(--surface2); }
+    .dr-body {
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .fld label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .fld select, .fld input, .fld textarea {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      font-family: var(--f-body);
+      font-size: 13px;
+    }
+    .fld textarea { min-height: 80px; resize: vertical; }
+
+    .sec-title {
+      font-family: var(--f-head);
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--navy);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .link-row {
+      display: grid;
+      grid-template-columns: 110px 1fr 50px;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .link-label { font-size: 12px; font-weight: 600; color: var(--muted); }
+
+    /* Task & Attachments */
+    .task-item {
+      background: var(--surface2);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .task-top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .task-attach-preview {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+    .task-attach-img {
+      width: 80px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 4px;
+      border: 1px solid var(--line);
+      cursor: pointer;
+    }
+
+    /* Discussion Thread */
+    .cmt-box {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: var(--surface2);
+      margin-bottom: 10px;
+    }
+    .cmt-top {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: var(--navy);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top App Frame -->
+  <header class="top">
+    <div class="top-in">
+      <a href="#" class="brand-wrap">
+        <span class="app-title">Vidscola Renewal Hub</span>
+      </a>
+      
+      <nav class="nav">
+        <a href="#board" aria-current="page">Board</a>
+      </nav>
+
+      <div class="user-meta">
+        <div class="user-badge" id="currentUserDisplay">
+          <span class="user-avatar">H</span>
+          <span>Habiba (Admin)</span>
+        </div>
+        <button class="btn pri" id="btnNewCard">+ New Card</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Kanban Board -->
+  <main>
+    <div class="filter-bar">
+      <input type="search" id="searchInp" placeholder="Search cards...">
+      <select id="prioFilter">
+        <option value="all">All Priorities</option>
+        <option value="High">High</option>
+        <option value="Medium">Medium</option>
+        <option value="Low">Low</option>
+      </select>
+      <span class="count" id="cardCounter">0 cards</span>
+    </div>
+
+    <div class="board-columns" id="boardCols"></div>
+  </main>
+
+  <!-- Side Drawer Details -->
+  <div id="scrim" hidden></div>
+  <aside id="drawer" hidden>
+    <div class="dr-head">
+      <input id="drTitle" placeholder="Card Title">
+      <button class="btn" id="btnDrClose">Close</button>
+    </div>
+    <div class="dr-body">
+      <!-- 1. Metadata Grid -->
+      <div class="form-grid">
+        <div class="fld">
+          <label>Stage</label>
+          <select id="drStage"></select>
+        </div>
+        <div class="fld">
+          <label>Owner</label>
+          <input id="drOwner" placeholder="Assign owner">
+        </div>
+        <div class="fld">
+          <label>Priority</label>
+          <select id="drPriority">
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 2. Notes Section -->
+      <div class="fld">
+        <label>Notes & Scope</label>
+        <textarea id="drNotes" placeholder="Add descriptions, credentials, or review notes..."></textarea>
+      </div>
+
+      <!-- 3. Four Dedicated Links -->
+      <div class="links-block">
+        <div class="sec-title">Project Links</div>
+        <div class="link-row">
+          <span class="link-label">Copy Doc:</span>
+          <input id="drLinkCopy" placeholder="https://docs.google.com/...">
+          <a id="btnOpenCopy" target="_blank" class="btn sm" style="display:none">Open</a>
+        </div>
+        <div class="link-row">
+          <span class="link-label">Design:</span>
+          <input id="drLinkDesign" placeholder="https://figma.com/...">
+          <a id="btnOpenDesign" target="_blank" class="btn sm" style="display:none">Open</a>
+        </div>
+        <div class="link-row">
+          <span class="link-label">Staging:</span>
+          <input id="drLinkStaging" placeholder="https://staging.vidscola...">
+          <a id="btnOpenStaging" target="_blank" class="btn sm" style="display:none">Open</a>
+        </div>
+        <div class="link-row">
+          <span class="link-label">Live Link:</span>
+          <input id="drLinkLive" placeholder="https://vidscola.com/...">
+          <a id="btnOpenLive" target="_blank" class="btn sm" style="display:none">Open</a>
+        </div>
+      </div>
+
+      <!-- 4. Tasks with Screenshot Attachment Support -->
+      <div>
+        <div class="sec-title">Tasks & Live Screenshots</div>
+        <div id="taskList"></div>
+        
+        <div style="margin-top:12px; display:flex; flex-direction:column; gap:8px;">
+          <input id="taskInput" placeholder="Add task or issue..." style="width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-family:var(--f-body);">
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <label class="btn sm" style="cursor:pointer">
+              📷 Attach Screenshot
+              <input type="file" id="taskFile" accept="image/*" style="display:none">
+            </label>
+            <span id="attachedFileName" style="font-size:12px; color:var(--muted)"></span>
+            <button class="btn pri sm" id="btnAddTask">Add Task</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. Discussion Thread -->
+      <div>
+        <div class="sec-title">Discussion</div>
+        <div id="commentList"></div>
+        <div style="display:flex; flex-direction:column; gap:8px; margin-top:10px;">
+          <textarea id="cmtInput" placeholder="Write feedback, question, or approval note..." style="width:100%; min-height:60px; padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-family:var(--f-body);"></textarea>
+          <button class="btn pri sm" id="btnPostCmt" style="align-self:flex-end">Post Update</button>
+        </div>
+      </div>
+
+      <!-- Delete Action -->
+      <div style="margin-top:20px; border-top:1px solid var(--line); padding-top:16px;">
+        <button class="btn bad" id="btnDeleteCard">Delete Card</button>
+      </div>
+    </div>
+  </aside>
+
+  <script>
+    // Firebase Configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyB-Hj58OSIQzMmRGao1j5xdZL4WpLmUI6M",
+      authDomain: "vidscola-website-renewal-hub.firebaseapp.com",
+      projectId: "vidscola-website-renewal-hub",
+      storageBucket: "vidscola-website-renewal-hub.firebasestorage.app",
+      messagingSenderId: "47754101199",
+      appId: "1:47754101199:web:d6bfcc1b620b521f58d2ba",
+      measurementId: "G-33E2LFJ6SR"
+    };
+
+    // Initialize Firebase and Firestore
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.firestore();
+    const cardsRef = db.collection('cards');
+
+    // Updated Stages
+    const STAGES = [
+      'Copy Writing',
+      'Copy Review',
+      'Design',
+      'Staging',
+      'Live',
+      'Changes Requests'
+    ];
+    const STAGE_COLORS = ['#3B82F6', '#6366F1', '#EC4899', '#F59E0B', '#10B981', '#EF4444'];
+
+    let cards = [];
+    let activeCardId = null;
+    let pendingAttachment = null;
+
+    // DOM selectors
+    const $ = id => document.getElementById(id);
+    const boardCols = $('boardCols');
+    const scrim = $('scrim');
+    const drawer = $('drawer');
+
+    // Realtime Firestore Listener
+    cardsRef.onSnapshot((snapshot) => {
+      cards = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      cards.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      renderBoard();
+
+      // If drawer is open, keep it updated
+      if (activeCardId) {
+        const c = cards.find(x => x.id === activeCardId);
+        if (c) {
+          renderTasks(c);
+          renderComments(c);
+          updateLinkButtons(c.links);
+        }
+      }
+    }, (err) => {
+      console.error("Firestore sync error:", err);
+    });
+
+    // Render Board Columns
+    function renderBoard() {
+      const q = $('searchInp').value.toLowerCase();
+      const prio = $('prioFilter').value;
+
+      boardCols.innerHTML = STAGES.map((stg, i) => {
+        const stageCards = cards.filter(c => {
+          const matchesQ = (c.title || '').toLowerCase().includes(q) || (c.notes || '').toLowerCase().includes(q);
+          const matchesPrio = prio === 'all' || (c.priority || 'Medium') === prio;
+          return (c.stage || 'Copy Writing') === stg && matchesQ && matchesPrio;
+        });
+
+        const cardsMarkup = stageCards.map(c => `
+          <div class="card" onclick="openDrawer('${c.id}')">
+            <div class="card-title">${escapeHtml(c.title || 'Untitled')}</div>
+            <div class="card-meta">
+              <span class="prio-pill prio-${(c.priority || 'medium').toLowerCase()}">${c.priority || 'Medium'}</span>
+              <span class="tag">${escapeHtml(c.owner || 'Unassigned')}</span>
+              ${c.tasks && c.tasks.length ? `<span class="tag">✓ ${c.tasks.filter(t=>t.done).length}/${c.tasks.length}</span>` : ''}
+            </div>
+          </div>
+        `).join('');
+
+        return `
+          <div class="col">
+            <h3>
+              <span class="col-dot" style="background:${STAGE_COLORS[i]}"></span>
+              ${stg}
+              <span class="col-count">${stageCards.length}</span>
+            </h3>
+            <div class="cards-container">
+              ${cardsMarkup || '<div style="color:var(--muted);font-size:12px;padding:8px 0;">No cards</div>'}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      $('cardCounter').textContent = `${cards.length} cards total`;
+    }
+
+    // Open & populate Side Drawer
+    window.openDrawer = function(id) {
+      activeCardId = id;
+      const c = cards.find(x => x.id === id);
+      if (!c) return;
+
+      $('drTitle').value = c.title || '';
+      $('drOwner').value = c.owner || '';
+      $('drPriority').value = c.priority || 'Medium';
+      $('drNotes').value = c.notes || '';
+      
+      // Setup Stages Dropdown
+      $('drStage').innerHTML = STAGES.map(s => `<option value="${s}" ${(c.stage || 'Copy Writing') === s ? 'selected' : ''}>${s}</option>`).join('');
+
+      // Links setup
+      $('drLinkCopy').value = c.links?.copy || '';
+      $('drLinkDesign').value = c.links?.design || '';
+      $('drLinkStaging').value = c.links?.staging || '';
+      $('drLinkLive').value = c.links?.live || '';
+      updateLinkButtons(c.links);
+
+      renderTasks(c);
+      renderComments(c);
+
+      scrim.hidden = false;
+      drawer.hidden = false;
+    };
+
+    function updateLinkButtons(links) {
+      const setupBtn = (btnId, url) => {
+        const b = $(btnId);
+        if (url && /^https?:\/\//i.test(url)) {
+          b.href = url;
+          b.style.display = 'inline-flex';
+        } else {
+          b.style.display = 'none';
+        }
+      };
+      setupBtn('btnOpenCopy', links?.copy);
+      setupBtn('btnOpenDesign', links?.design);
+      setupBtn('btnOpenStaging', links?.staging);
+      setupBtn('btnOpenLive', links?.live);
+    }
+
+    function renderTasks(c) {
+      $('taskList').innerHTML = (c.tasks || []).map((t, idx) => `
+        <div class="task-item">
+          <div class="task-top">
+            <input type="checkbox" ${t.done ? 'checked' : ''} onchange="toggleTask(${idx})">
+            <span style="flex:1;${t.done ? 'text-decoration:line-through;color:var(--muted);' : ''}">${escapeHtml(t.text)}</span>
+            <button class="btn sm bad" onclick="deleteTask(${idx})">×</button>
+          </div>
+          ${t.image ? `<div class="task-attach-preview"><img src="${t.image}" class="task-attach-img" onclick="window.open('${t.image}')" title="Click to view full screenshot"></div>` : ''}
+        </div>
+      `).join('') || '<div style="color:var(--muted); font-size:12px;">No checklist tasks added yet.</div>';
+    }
+
+    function renderComments(c) {
+      $('commentList').innerHTML = (c.comments || []).map(cm => `
+        <div class="cmt-box">
+          <div class="cmt-top">
+            <span>${escapeHtml(cm.by)}</span>
+            <span style="color:var(--muted);">${escapeHtml(cm.time)}</span>
+          </div>
+          <div>${escapeHtml(cm.text)}</div>
+        </div>
+      `).join('') || '<div style="color:var(--muted); font-size:12px;">No comments yet.</div>';
+    }
+
+    // Auto-save card edits to Firestore
+    let saveTimeout = null;
+    function saveActiveCard() {
+      if (!activeCardId) return;
+      clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(() => {
+        const updateData = {
+          title: $('drTitle').value.trim() || 'Untitled Card',
+          stage: $('drStage').value,
+          owner: $('drOwner').value.trim(),
+          priority: $('drPriority').value,
+          notes: $('drNotes').value,
+          links: {
+            copy: $('drLinkCopy').value.trim(),
+            design: $('drLinkDesign').value.trim(),
+            staging: $('drLinkStaging').value.trim(),
+            live: $('drLinkLive').value.trim()
+          }
+        };
+        cardsRef.doc(activeCardId).update(updateData);
+      }, 300);
+    }
+
+    ['drTitle', 'drOwner', 'drNotes', 'drLinkCopy', 'drLinkDesign', 'drLinkStaging', 'drLinkLive'].forEach(id => {
+      $(id).addEventListener('input', saveActiveCard);
+    });
+    ['drStage', 'drPriority'].forEach(id => {
+      $(id).addEventListener('change', saveActiveCard);
+    });
+
+    // Task Management with Screenshots
+    $('taskFile').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          pendingAttachment = evt.target.result;
+          $('attachedFileName').textContent = `Attached: ${file.name.slice(0, 15)}...`;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    $('btnAddTask').addEventListener('click', async () => {
+      const val = $('taskInput').value.trim();
+      if (!val || !activeCardId) return;
+      const c = cards.find(x => x.id === activeCardId);
+      if (!c) return;
+
+      const updatedTasks = c.tasks || [];
+      updatedTasks.push({
+        id: 't' + Date.now(),
+        text: val,
+        done: false,
+        image: pendingAttachment || ""
+      });
+
+      await cardsRef.doc(activeCardId).update({ tasks: updatedTasks });
+
+      $('taskInput').value = '';
+      $('taskFile').value = '';
+      pendingAttachment = null;
+      $('attachedFileName').textContent = '';
+    });
+
+    window.toggleTask = async function(idx) {
+      const c = cards.find(x => x.id === activeCardId);
+      if (c && c.tasks && c.tasks[idx]) {
+        c.tasks[idx].done = !c.tasks[idx].done;
+        await cardsRef.doc(activeCardId).update({ tasks: c.tasks });
+      }
+    };
+
+    window.deleteTask = async function(idx) {
+      const c = cards.find(x => x.id === activeCardId);
+      if (c && c.tasks) {
+        c.tasks.splice(idx, 1);
+        await cardsRef.doc(activeCardId).update({ tasks: c.tasks });
+      }
+    };
+
+    // Discussion Posting
+    $('btnPostCmt').addEventListener('click', async () => {
+      const text = $('cmtInput').value.trim();
+      if (!text || !activeCardId) return;
+      const c = cards.find(x => x.id === activeCardId);
+      if (!c) return;
+
+      const updatedComments = c.comments || [];
+      updatedComments.unshift({
+        by: 'Habiba',
+        text,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      });
+
+      await cardsRef.doc(activeCardId).update({ comments: updatedComments });
+      $('cmtInput').value = '';
+    });
+
+    // Close Drawer
+    function closeDrawer() {
+      scrim.hidden = true;
+      drawer.hidden = true;
+      activeCardId = null;
+    }
+    $('btnDrClose').addEventListener('click', closeDrawer);
+    scrim.addEventListener('click', closeDrawer);
+
+    // Delete Card
+    $('btnDeleteCard').addEventListener('click', async () => {
+      if (confirm('Are you sure you want to delete this card?')) {
+        await cardsRef.doc(activeCardId).delete();
+        closeDrawer();
+      }
+    });
+
+    // Add New Card
+    $('btnNewCard').addEventListener('click', async () => {
+      const newCard = {
+        title: 'New Page',
+        stage: 'Copy Writing',
+        priority: 'Medium',
+        owner: 'Habiba',
+        notes: '',
+        links: { copy: '', design: '', staging: '', live: '' },
+        tasks: [],
+        comments: [],
+        createdAt: Date.now()
+      };
+      const docRef = await cardsRef.add(newCard);
+      openDrawer(docRef.id);
+    });
+
+    // Filters
+    $('searchInp').addEventListener('input', renderBoard);
+    $('prioFilter').addEventListener('change', renderBoard);
+
+    function escapeHtml(str) {
+      return String(str || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+  </script>
+</body>
+</html>
